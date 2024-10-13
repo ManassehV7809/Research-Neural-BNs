@@ -1,8 +1,24 @@
 import networkx as nx
 import matplotlib.pyplot as plt
 
-# Define structures as lists of edges
+# Define the structures and their edges
 structures = {
+    "chain_structure": [("A", "B"), ("B", "C")],
+    "complex_structure": [("A", "B"), ("B", "C"), ("A", "C")],
+    "ritesh_s_structure": [
+        ("A", "D"),
+        ("A", "F"),
+        ("B", "D"),
+        ("C", "D"),
+        ("C", "E"),
+        ("E", "G"),
+        ("D", "G"),
+        ("D", "F"),
+        ("F", "H"),
+        ("G", "H"),
+        ("H", "I"),
+        ("F", "I"),
+    ],
     "vusani_s_structure_1": [
         ("A", "E"),
         ("B", "E"),
@@ -26,6 +42,39 @@ structures = {
         ("G", "J"),
         ("H", "J"),
         ("I", "J"),
+    ],
+    "complex_20_node_structure": [
+        ('A', 'D'),
+        ('A', 'E'),
+        ('A', 'F'),
+        ('B', 'D'),
+        ('B', 'G'),
+        ('B', 'H'),
+        ('C', 'E'),
+        ('C', 'G'),
+        ('C', 'I'),
+        ('D', 'J'),
+        ('D', 'K'),
+        ('E', 'J'),
+        ('E', 'L'),
+        ('F', 'K'),
+        ('F', 'M'),
+        ('G', 'L'),
+        ('G', 'N'),
+        ('H', 'M'),
+        ('H', 'O'),
+        ('I', 'N'),
+        ('I', 'P'),
+        ('J', 'Q'),
+        ('K', 'Q'),
+        ('L', 'R'),
+        ('M', 'R'),
+        ('N', 'S'),
+        ('O', 'S'),
+        ('P', 'T'),
+        ('Q', 'T'),
+        ('R', 'T'),
+        ('S', 'T'),
     ],
 }
 

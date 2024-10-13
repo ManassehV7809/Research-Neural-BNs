@@ -93,13 +93,13 @@ def get_nodes_with_multiple_parents(structure_edges):
     nodes_with_multiple_parents = {node for node, parents in child_parents.items() if len(parents) > 1}
     return nodes_with_multiple_parents
 
-def analyze_node_performance(csv_files_pattern):
+def analyze_node_performance():
     """
     Reads the experimental results from multiple CSV files and compares the performance of NeuralBN and TraditionalBN
     on nodes with multiple parents across all experiments and structures.
     """
-    # Get the list of CSV files matching the pattern
-    csv_files = glob.glob(csv_files_pattern)
+    # Get the list of CSV files in the current directory
+    csv_files = glob.glob("*.csv")
 
     # Initialize a list to store all data
     all_data = []
@@ -122,7 +122,7 @@ def analyze_node_performance(csv_files_pattern):
     
     # Combine all data into a single DataFrame
     if not all_data:
-        print("No data found. Please check the CSV files pattern and filenames.")
+        print("No data found. Please check the CSV files in the current directory.")
         return
     combined_df = pd.concat(all_data, ignore_index=True)
 
@@ -154,8 +154,8 @@ def analyze_node_performance(csv_files_pattern):
         # Filter the DataFrame to include only the nodes with multiple parents
         multi_parent_df = structure_df[structure_df['Node'].isin(nodes_with_multiple_parents)]
 
-        # Group by Node, Experiment, and Dataset Size, then calculate average KL divergences
-        node_performance = multi_parent_df.groupby(['Node', 'Experiment', 'Dataset Size']).agg({
+        # Group by Node and Dataset Size, then calculate average KL divergences
+        node_performance = multi_parent_df.groupby(['Node', 'Dataset Size']).agg({
             'KL Divergence NeuralBN': 'mean',
             'KL Divergence TraditionalBN': 'mean',
         }).reset_index()
@@ -203,7 +203,7 @@ def plot_node_performance(results_df):
             # Melt the DataFrame to long format
             node_melted_df = pd.melt(
                 node_df,
-                id_vars=['Dataset Size', 'Experiment'],
+                id_vars=['Dataset Size'],
                 value_vars=['KL Divergence NeuralBN', 'KL Divergence TraditionalBN'],
                 var_name='Model',
                 value_name='KL Divergence'
@@ -221,7 +221,6 @@ def plot_node_performance(results_df):
                 x='Dataset Size',
                 y='KL Divergence',
                 hue='Model',
-                style='Experiment',
                 markers=True,
                 dashes=False
             )
@@ -240,7 +239,5 @@ def plot_node_performance(results_df):
             print(f"Plot saved to {filepath}")
 
 # Example usage:
-# Assuming your CSV files are named like 'structure_name_experiment_X_results.csv'
-# and are located in the current directory or specify the correct path
-csv_files_pattern = '*_experiment_*_results.csv'
-analyze_node_performance(csv_files_pattern)
+# Process all CSV files in the current directory
+analyze_node_performance()
