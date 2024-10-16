@@ -350,7 +350,7 @@ def generate_random_cpds(structure_name):
 
         return [cpd_A, cpd_B, cpd_C]
 
-    elif structure_name == "complex_structure":
+    elif structure_name == "triangular_structure":
         # CPD for A
         prob_A = np.random.rand()
         cpd_A = TabularCPD(
@@ -360,7 +360,7 @@ def generate_random_cpds(structure_name):
             state_names={"A": [0, 1]},
         )
 
-        # CPD for B
+        # CPD for B with parent A
         prob_B = np.random.rand(2, 2)
         prob_B = prob_B / prob_B.sum(axis=0, keepdims=True)
         cpd_B = TabularCPD(
@@ -372,7 +372,7 @@ def generate_random_cpds(structure_name):
             state_names={"B": [0, 1], "A": [0, 1]},
         )
 
-        # CPD for C
+        # CPD for C with parents A and B (2x4 slots)
         prob_C = np.random.rand(2, 4)
         prob_C = prob_C / prob_C.sum(axis=0, keepdims=True)
         cpd_C = TabularCPD(
@@ -386,8 +386,10 @@ def generate_random_cpds(structure_name):
 
         return [cpd_A, cpd_B, cpd_C]
 
-    elif structure_name == "ritesh_s_structure":
-        # CPD for A
+    elif structure_name == "tree_structure":
+        # Nodes: A, B, C, D, E, F, G, H, I, J, K
+
+        # CPD for A (root node, no parents)
         prob_A = np.random.rand()
         cpd_A = TabularCPD(
             variable="A",
@@ -396,102 +398,129 @@ def generate_random_cpds(structure_name):
             state_names={"A": [0, 1]},
         )
 
-        # CPD for B
-        prob_B = np.random.rand()
+        # CPD for B with parent A
+        prob_B = np.random.rand(2, 2)
+        prob_B = prob_B / prob_B.sum(axis=0, keepdims=True)
         cpd_B = TabularCPD(
             variable="B",
             variable_card=2,
-            values=[[prob_B], [1 - prob_B]],
-            state_names={"B": [0, 1]},
+            values=prob_B,
+            evidence=["A"],
+            evidence_card=[2],
+            state_names={"B": [0, 1], "A": [0, 1]},
         )
 
-        # CPD for C
-        prob_C = np.random.rand()
+        # CPD for C with parent A
+        prob_C = np.random.rand(2, 2)
+        prob_C = prob_C / prob_C.sum(axis=0, keepdims=True)
         cpd_C = TabularCPD(
             variable="C",
             variable_card=2,
-            values=[[prob_C], [1 - prob_C]],
-            state_names={"C": [0, 1]},
+            values=prob_C,
+            evidence=["A"],
+            evidence_card=[2],
+            state_names={"C": [0, 1], "A": [0, 1]},
         )
 
-        # CPD for D
-        prob_D = np.random.rand(2, 8)
+        # CPD for D with parent B
+        prob_D = np.random.rand(2, 2)
         prob_D = prob_D / prob_D.sum(axis=0, keepdims=True)
         cpd_D = TabularCPD(
             variable="D",
             variable_card=2,
             values=prob_D,
-            evidence=["A", "B", "C"],
-            evidence_card=[2, 2, 2],
-            state_names={"D": [0, 1], "A": [0, 1], "B": [0, 1], "C": [0, 1]},
+            evidence=["B"],
+            evidence_card=[2],
+            state_names={"D": [0, 1], "B": [0, 1]},
         )
 
-        # CPD for E
+        # CPD for E with parent B
         prob_E = np.random.rand(2, 2)
         prob_E = prob_E / prob_E.sum(axis=0, keepdims=True)
         cpd_E = TabularCPD(
             variable="E",
             variable_card=2,
             values=prob_E,
-            evidence=["C"],
+            evidence=["B"],
             evidence_card=[2],
-            state_names={"E": [0, 1], "C": [0, 1]},
+            state_names={"E": [0, 1], "B": [0, 1]},
         )
 
-        # CPD for F
-        prob_F = np.random.rand(2, 4)
+        # CPD for F with parent C
+        prob_F = np.random.rand(2, 2)
         prob_F = prob_F / prob_F.sum(axis=0, keepdims=True)
         cpd_F = TabularCPD(
             variable="F",
             variable_card=2,
             values=prob_F,
-            evidence=["A", "D"],
-            evidence_card=[2, 2],
-            state_names={"F": [0, 1], "A": [0, 1], "D": [0, 1]},
+            evidence=["C"],
+            evidence_card=[2],
+            state_names={"F": [0, 1], "C": [0, 1]},
         )
 
-        # CPD for G
-        prob_G = np.random.rand(2, 4)
+        # CPD for G with parent C
+        prob_G = np.random.rand(2, 2)
         prob_G = prob_G / prob_G.sum(axis=0, keepdims=True)
         cpd_G = TabularCPD(
             variable="G",
             variable_card=2,
             values=prob_G,
-            evidence=["E", "D"],
-            evidence_card=[2, 2],
-            state_names={"G": [0, 1], "E": [0, 1], "D": [0, 1]},
+            evidence=["C"],
+            evidence_card=[2],
+            state_names={"G": [0, 1], "C": [0, 1]},
         )
 
-        # CPD for H
-        prob_H = np.random.rand(2, 4)
+        # CPD for H with parent D
+        prob_H = np.random.rand(2, 2)
         prob_H = prob_H / prob_H.sum(axis=0, keepdims=True)
         cpd_H = TabularCPD(
             variable="H",
             variable_card=2,
             values=prob_H,
-            evidence=["F", "G"],
-            evidence_card=[2, 2],
-            state_names={"H": [0, 1], "F": [0, 1], "G": [0, 1]},
+            evidence=["D"],
+            evidence_card=[2],
+            state_names={"H": [0, 1], "D": [0, 1]},
         )
 
-        # CPD for I
-        prob_I = np.random.rand(2, 4)
+        # CPD for I with parent E
+        prob_I = np.random.rand(2, 2)
         prob_I = prob_I / prob_I.sum(axis=0, keepdims=True)
         cpd_I = TabularCPD(
             variable="I",
             variable_card=2,
             values=prob_I,
-            evidence=["F", "H"],
-            evidence_card=[2, 2],
-            state_names={"I": [0, 1], "F": [0, 1], "H": [0, 1]},
+            evidence=["E"],
+            evidence_card=[2],
+            state_names={"I": [0, 1], "E": [0, 1]},
         )
 
-        return [cpd_A, cpd_B, cpd_C, cpd_D, cpd_E, cpd_F, cpd_G, cpd_H, cpd_I]
-    
+        # CPD for J with parent F
+        prob_J = np.random.rand(2, 2)
+        prob_J = prob_J / prob_J.sum(axis=0, keepdims=True)
+        cpd_J = TabularCPD(
+            variable="J",
+            variable_card=2,
+            values=prob_J,
+            evidence=["F"],
+            evidence_card=[2],
+            state_names={"J": [0, 1], "F": [0, 1]},
+        )
 
-    
-      
-    elif structure_name == "vusani_s_structure_1":
+        # CPD for K with parent G
+        prob_K = np.random.rand(2, 2)
+        prob_K = prob_K / prob_K.sum(axis=0, keepdims=True)
+        cpd_K = TabularCPD(
+            variable="K",
+            variable_card=2,
+            values=prob_K,
+            evidence=["G"],
+            evidence_card=[2],
+            state_names={"K": [0, 1], "G": [0, 1]},
+        )
+
+        return [cpd_A, cpd_B, cpd_C, cpd_D, cpd_E, cpd_F, cpd_G, cpd_H, cpd_I, cpd_J, cpd_K]
+
+    elif structure_name == "sparse_structure":
         # Nodes: A, B, C, D, E, F, G, H
 
         # CPD for A
@@ -530,28 +559,28 @@ def generate_random_cpds(structure_name):
             state_names={"D": [0, 1]},
         )
 
-        # CPD for E with parents A, B, C, D
-        prob_E = np.random.rand(2, 16)  # 2 rows, 2^4=16 columns
+        # CPD for E with parents A, B, C
+        prob_E = np.random.rand(2, 8)  # 2 rows, 2^3=8 columns
         prob_E = prob_E / prob_E.sum(axis=0, keepdims=True)
         cpd_E = TabularCPD(
             variable="E",
             variable_card=2,
             values=prob_E,
-            evidence=["A", "B", "C", "D"],
-            evidence_card=[2, 2, 2, 2],
-            state_names={"E": [0, 1], "A": [0, 1], "B": [0, 1], "C": [0, 1], "D": [0, 1]},
+            evidence=["A", "B", "C"],
+            evidence_card=[2, 2, 2],
+            state_names={"E": [0, 1], "A": [0, 1], "B": [0, 1], "C": [0, 1]},
         )
 
-        # CPD for F with parent E
-        prob_F = np.random.rand(2, 2)
+        # CPD for F with parent D
+        prob_F = np.random.rand(2, 4)
         prob_F = prob_F / prob_F.sum(axis=0, keepdims=True)
         cpd_F = TabularCPD(
             variable="F",
             variable_card=2,
             values=prob_F,
-            evidence=["E"],
-            evidence_card=[2],
-            state_names={"F": [0, 1], "E": [0, 1]},
+            evidence=["D","E"],
+            evidence_card=[2,2],
+            state_names={"F": [0, 1], "D": [0, 1],"E": [0, 1]},
         )
 
         # CPD for G with parent E
@@ -566,22 +595,22 @@ def generate_random_cpds(structure_name):
             state_names={"G": [0, 1], "E": [0, 1]},
         )
 
-        # CPD for H with parents E, F, G
-        prob_H = np.random.rand(2, 8)  # 2 rows, 2^3=8 columns
+        # CPD for H with parents F and G (2x4 slots)
+        prob_H = np.random.rand(2, 4)
         prob_H = prob_H / prob_H.sum(axis=0, keepdims=True)
         cpd_H = TabularCPD(
             variable="H",
             variable_card=2,
             values=prob_H,
-            evidence=["E", "F", "G"],
-            evidence_card=[2, 2, 2],
-            state_names={"H": [0, 1], "E": [0, 1], "F": [0, 1], "G": [0, 1]},
+            evidence=["F", "G"],
+            evidence_card=[2, 2],
+            state_names={"H": [0, 1], "F": [0, 1], "G": [0, 1]},
         )
 
         return [cpd_A, cpd_B, cpd_C, cpd_D, cpd_E, cpd_F, cpd_G, cpd_H]
 
-    elif structure_name == "vusani_s_structure_2":
-        # Nodes: A, B, C, D, F, G, H, I, J
+    elif structure_name == "sparse_structure_2":
+        # Nodes: A, B, C, D, E, F, G, H, I, J
 
         # CPD for A
         prob_A = np.random.rand()
@@ -619,176 +648,313 @@ def generate_random_cpds(structure_name):
             state_names={"D": [0, 1]},
         )
 
-        # CPD for F with parents A, B, C, D
-        prob_F = np.random.rand(2, 16)  # 2 rows, 2^4=16 columns
-        prob_F = prob_F / prob_F.sum(axis=0, keepdims=True)
+        # CPD for E 
+        prob_E = np.random.rand()
+        cpd_E = TabularCPD(
+            variable="E",
+            variable_card=2,
+            values=[[prob_E], [1 - prob_E]],
+            state_names={"E": [0, 1]},
+        )
+
+        # CPD for F 
+        prob_F = np.random.rand()
         cpd_F = TabularCPD(
             variable="F",
             variable_card=2,
-            values=prob_F,
-            evidence=["A", "B", "C", "D"],
-            evidence_card=[2, 2, 2, 2],
-            state_names={"F": [0, 1], "A": [0, 1], "B": [0, 1], "C": [0, 1], "D": [0, 1]},
+            values=[[prob_F], [1 - prob_F]],
+            state_names={"F": [0, 1]},
         )
 
-        # CPD for G with parent F
-        prob_G = np.random.rand(2, 2)
+
+        # CPD for G with parentS A B C
+        prob_G = np.random.rand(2, 8)
         prob_G = prob_G / prob_G.sum(axis=0, keepdims=True)
         cpd_G = TabularCPD(
             variable="G",
             variable_card=2,
             values=prob_G,
-            evidence=["F"],
-            evidence_card=[2],
-            state_names={"G": [0, 1], "F": [0, 1]},
+            evidence=["A", "B","C"],
+            evidence_card=[2,2,2],
+            state_names={"G": [0, 1], "A": [0, 1],"B": [0, 1],"C": [0, 1]},
         )
 
-        # CPD for H with parent F
-        prob_H = np.random.rand(2, 2)
+        # CPD for H with parent E 
+        prob_H = np.random.rand(2, 4)
         prob_H = prob_H / prob_H.sum(axis=0, keepdims=True)
         cpd_H = TabularCPD(
             variable="H",
             variable_card=2,
             values=prob_H,
-            evidence=["F"],
-            evidence_card=[2],
-            state_names={"H": [0, 1], "F": [0, 1]},
+            evidence=["E","D"],
+            evidence_card=[2,2],
+            state_names={"H": [0, 1], "E": [0, 1], "D": [0, 1]},
         )
 
-        # CPD for I with parent F
-        prob_I = np.random.rand(2, 2)
+        # CPD for I with parentS H and G
+        prob_I = np.random.rand(2, 4)
         prob_I = prob_I / prob_I.sum(axis=0, keepdims=True)
         cpd_I = TabularCPD(
             variable="I",
             variable_card=2,
             values=prob_I,
-            evidence=["F"],
-            evidence_card=[2],
-            state_names={"I": [0, 1], "F": [0, 1]},
+            evidence=["H","G"],
+            evidence_card=[2,2],
+            state_names={"I": [0, 1], "H": [0, 1], "G": [0, 1]},
         )
 
-        # CPD for J with parents F, G, H, I
-        prob_J = np.random.rand(2, 16)  # 2 rows, 2^4=16 columns
+        # CPD for J with parents F, H, I (2x8 slots)
+        prob_J = np.random.rand(2, 8)
         prob_J = prob_J / prob_J.sum(axis=0, keepdims=True)
         cpd_J = TabularCPD(
             variable="J",
             variable_card=2,
             values=prob_J,
-            evidence=["F", "G", "H", "I"],
-            evidence_card=[2, 2, 2, 2],
-            state_names={"J": [0, 1], "F": [0, 1], "G": [0, 1], "H": [0, 1], "I": [0, 1]},
+            evidence=["F", "H", "I"],
+            evidence_card=[2, 2, 2],
+            state_names={"J": [0, 1], "F": [0, 1], "H": [0, 1], "I": [0, 1]},
         )
 
-        return [cpd_A, cpd_B, cpd_C, cpd_D, cpd_F, cpd_G, cpd_H, cpd_I, cpd_J]
-
-    elif structure_name == 'complex_20_node_structure':
+        return [cpd_A, cpd_B, cpd_C, cpd_D, cpd_E, cpd_F, cpd_G, cpd_H, cpd_I, cpd_J]
+    
+    elif structure_name == "dense_structure":
         # CPD for A (no parents, binary)
         prob_A = np.random.rand()
         cpd_A = TabularCPD(variable='A', variable_card=2, values=[[prob_A], [1 - prob_A]])
-
+        
         # CPD for B (no parents, binary)
         prob_B = np.random.rand()
         cpd_B = TabularCPD(variable='B', variable_card=2, values=[[prob_B], [1 - prob_B]])
-
+        
         # CPD for C (no parents, binary)
         prob_C = np.random.rand()
         cpd_C = TabularCPD(variable='C', variable_card=2, values=[[prob_C], [1 - prob_C]])
-
-        # CPD for D with parents A and B (2x2x2 = 4 slots)
+        
+        # CPD for D with parents A, B (2x4 slots)
         prob_D = np.random.rand(2, 4)
-        prob_D = prob_D / prob_D.sum(axis=0, keepdims=True)  # Normalize columns
-        cpd_D = TabularCPD(variable='D', variable_card=2, values=prob_D, evidence=['A', 'B'], evidence_card=[2, 2])
-
-        # CPD for E with parents A and C (2x2x2 = 4 slots)
+        prob_D /= prob_D.sum(axis=0, keepdims=True)
+        cpd_D = TabularCPD(
+            variable='D',
+            variable_card=2,
+            values=prob_D,
+            evidence=['A', 'B'],
+            evidence_card=[2, 2],
+            state_names={"D": [0, 1], "A": [0,1], "B": [0,1]}
+        )
+        
+        # CPD for E with parents A, C (2x4 slots)
         prob_E = np.random.rand(2, 4)
-        prob_E = prob_E / prob_E.sum(axis=0, keepdims=True)
-        cpd_E = TabularCPD(variable='E', variable_card=2, values=prob_E, evidence=['A', 'C'], evidence_card=[2, 2])
-
+        prob_E /= prob_E.sum(axis=0, keepdims=True)
+        cpd_E = TabularCPD(
+            variable='E',
+            variable_card=2,
+            values=prob_E,
+            evidence=['A', 'C'],
+            evidence_card=[2, 2],
+            state_names={"E": [0, 1], "A": [0,1], "C": [0,1]}
+        )
+        
         # CPD for F with parent A (2x2 slots)
         prob_F = np.random.rand(2, 2)
-        prob_F = prob_F / prob_F.sum(axis=0, keepdims=True)
-        cpd_F = TabularCPD(variable='F', variable_card=2, values=prob_F, evidence=['A'], evidence_card=[2])
-
-        # CPD for G with parents B and C (2x2x2 = 4 slots)
+        prob_F /= prob_F.sum(axis=0, keepdims=True)
+        cpd_F = TabularCPD(
+            variable='F',
+            variable_card=2,
+            values=prob_F,
+            evidence=['A'],
+            evidence_card=[2],
+            state_names={"F": [0, 1], "A": [0,1]}
+        )
+        
+        # CPD for G with parents B, C (2x4 slots)
         prob_G = np.random.rand(2, 4)
-        prob_G = prob_G / prob_G.sum(axis=0, keepdims=True)
-        cpd_G = TabularCPD(variable='G', variable_card=2, values=prob_G, evidence=['B', 'C'], evidence_card=[2, 2])
-
+        prob_G /= prob_G.sum(axis=0, keepdims=True)
+        cpd_G = TabularCPD(
+            variable='G',
+            variable_card=2,
+            values=prob_G,
+            evidence=['B', 'C'],
+            evidence_card=[2, 2],
+            state_names={"G": [0, 1], "B": [0,1], "C": [0,1]}
+        )
+        
         # CPD for H with parent B (2x2 slots)
         prob_H = np.random.rand(2, 2)
-        prob_H = prob_H / prob_H.sum(axis=0, keepdims=True)
-        cpd_H = TabularCPD(variable='H', variable_card=2, values=prob_H, evidence=['B'], evidence_card=[2])
-
+        prob_H /= prob_H.sum(axis=0, keepdims=True)
+        cpd_H = TabularCPD(
+            variable='H',
+            variable_card=2,
+            values=prob_H,
+            evidence=['B'],
+            evidence_card=[2],
+            state_names={"H": [0, 1], "B": [0,1]}
+        )
+        
         # CPD for I with parent C (2x2 slots)
         prob_I = np.random.rand(2, 2)
-        prob_I = prob_I / prob_I.sum(axis=0, keepdims=True)
-        cpd_I = TabularCPD(variable='I', variable_card=2, values=prob_I, evidence=['C'], evidence_card=[2])
-
-        # CPD for J with parents D and E (2x2x2 = 4 slots)
+        prob_I /= prob_I.sum(axis=0, keepdims=True)
+        cpd_I = TabularCPD(
+            variable='I',
+            variable_card=2,
+            values=prob_I,
+            evidence=['C'],
+            evidence_card=[2],
+            state_names={"I": [0, 1], "C": [0,1]}
+        )
+        
+        # CPD for J with parents D, E (2x4 slots)
         prob_J = np.random.rand(2, 4)
-        prob_J = prob_J / prob_J.sum(axis=0, keepdims=True)
-        cpd_J = TabularCPD(variable='J', variable_card=2, values=prob_J, evidence=['D', 'E'], evidence_card=[2, 2])
-
-        # CPD for K with parents D and F (2x2x2 = 4 slots)
+        prob_J /= prob_J.sum(axis=0, keepdims=True)
+        cpd_J = TabularCPD(
+            variable='J',
+            variable_card=2,
+            values=prob_J,
+            evidence=['D', 'E'],
+            evidence_card=[2, 2],
+            state_names={"J": [0, 1], "D": [0,1], "E": [0,1]}
+        )
+        
+        # CPD for K with parents D, F (2x4 slots)
         prob_K = np.random.rand(2, 4)
-        prob_K = prob_K / prob_K.sum(axis=0, keepdims=True)
-        cpd_K = TabularCPD(variable='K', variable_card=2, values=prob_K, evidence=['D', 'F'], evidence_card=[2, 2])
-
-        # CPD for L with parents E and G (2x2x2 = 4 slots)
+        prob_K /= prob_K.sum(axis=0, keepdims=True)
+        cpd_K = TabularCPD(
+            variable='K',
+            variable_card=2,
+            values=prob_K,
+            evidence=['D', 'F'],
+            evidence_card=[2, 2],
+            state_names={"K": [0, 1], "D": [0,1], "F": [0,1]}
+        )
+        
+        # CPD for L with parents E, G (2x4 slots)
         prob_L = np.random.rand(2, 4)
-        prob_L = prob_L / prob_L.sum(axis=0, keepdims=True)
-        cpd_L = TabularCPD(variable='L', variable_card=2, values=prob_L, evidence=['E', 'G'], evidence_card=[2, 2])
-
-        # CPD for M with parents F and H (2x2x2 = 4 slots)
+        prob_L /= prob_L.sum(axis=0, keepdims=True)
+        cpd_L = TabularCPD(
+            variable='L',
+            variable_card=2,
+            values=prob_L,
+            evidence=['E', 'G'],
+            evidence_card=[2, 2],
+            state_names={"L": [0, 1], "E": [0,1], "G": [0,1]}
+        )
+        
+        # CPD for M with parents F, H (2x4 slots)
         prob_M = np.random.rand(2, 4)
-        prob_M = prob_M / prob_M.sum(axis=0, keepdims=True)
-        cpd_M = TabularCPD(variable='M', variable_card=2, values=prob_M, evidence=['F', 'H'], evidence_card=[2, 2])
-
-        # CPD for N with parents G and I (2x2x2 = 4 slots)
+        prob_M /= prob_M.sum(axis=0, keepdims=True)
+        cpd_M = TabularCPD(
+            variable='M',
+            variable_card=2,
+            values=prob_M,
+            evidence=['F', 'H'],
+            evidence_card=[2, 2],
+            state_names={"M": [0, 1], "F": [0,1], "H": [0,1]}
+        )
+        
+        # CPD for N with parents G, I (2x4 slots)
         prob_N = np.random.rand(2, 4)
-        prob_N = prob_N / prob_N.sum(axis=0, keepdims=True)
-        cpd_N = TabularCPD(variable='N', variable_card=2, values=prob_N, evidence=['G', 'I'], evidence_card=[2, 2])
-
-        # CPD for O with parent H (2x2 slots)
+        prob_N /= prob_N.sum(axis=0, keepdims=True)
+        cpd_N = TabularCPD(
+            variable='N',
+            variable_card=2,
+            values=prob_N,
+            evidence=['G', 'I'],
+            evidence_card=[2, 2],
+            state_names={"N": [0, 1], "G": [0,1], "I": [0,1]}
+        )
+        
+        # CPD for O with parent H
         prob_O = np.random.rand(2, 2)
-        prob_O = prob_O / prob_O.sum(axis=0, keepdims=True)
-        cpd_O = TabularCPD(variable='O', variable_card=2, values=prob_O, evidence=['H'], evidence_card=[2])
-
-        # CPD for P with parent I (2x2 slots)
+        prob_O /= prob_O.sum(axis=0, keepdims=True)
+        cpd_O = TabularCPD(
+            variable='O',
+            variable_card=2,
+            values=prob_O,
+            evidence=['H'],
+            evidence_card=[2],
+            state_names={"O": [0, 1], "H": [0,1]}
+        )
+        
+        # CPD for P with parent I
         prob_P = np.random.rand(2, 2)
-        prob_P = prob_P / prob_P.sum(axis=0, keepdims=True)
-        cpd_P = TabularCPD(variable='P', variable_card=2, values=prob_P, evidence=['I'], evidence_card=[2])
-
-        # CPD for Q with parents J and K (2x2x2 = 4 slots)
+        prob_P /= prob_P.sum(axis=0, keepdims=True)
+        cpd_P = TabularCPD(
+            variable='P',
+            variable_card=2,
+            values=prob_P,
+            evidence=['I'],
+            evidence_card=[2],
+            state_names={"P": [0, 1], "I": [0,1]}
+        )
+        
+        # CPD for Q with parents J, K (2x4 slots)
         prob_Q = np.random.rand(2, 4)
-        prob_Q = prob_Q / prob_Q.sum(axis=0, keepdims=True)
-        cpd_Q = TabularCPD(variable='Q', variable_card=2, values=prob_Q, evidence=['J', 'K'], evidence_card=[2, 2])
-
-        # CPD for R with parents L and M (2x2x2 = 4 slots)
+        prob_Q /= prob_Q.sum(axis=0, keepdims=True)
+        cpd_Q = TabularCPD(
+            variable='Q',
+            variable_card=2,
+            values=prob_Q,
+            evidence=['J', 'K'],
+            evidence_card=[2, 2],
+            state_names={"Q": [0, 1], "J": [0,1], "K": [0,1]}
+        )
+        
+        # CPD for R with parents L, M (2x4 slots)
         prob_R = np.random.rand(2, 4)
-        prob_R = prob_R / prob_R.sum(axis=0, keepdims=True)
-        cpd_R = TabularCPD(variable='R', variable_card=2, values=prob_R, evidence=['L', 'M'], evidence_card=[2, 2])
-
-        # CPD for S with parents N and O (2x2x2 = 4 slots)
+        prob_R /= prob_R.sum(axis=0, keepdims=True)
+        cpd_R = TabularCPD(
+            variable='R',
+            variable_card=2,
+            values=prob_R,
+            evidence=['L', 'M'],
+            evidence_card=[2, 2],
+            state_names={"R": [0, 1], "L": [0,1], "M": [0,1]}
+        )
+        
+        # CPD for S with parents N, O (2x4 slots)
         prob_S = np.random.rand(2, 4)
-        prob_S = prob_S / prob_S.sum(axis=0, keepdims=True)
-        cpd_S = TabularCPD(variable='S', variable_card=2, values=prob_S, evidence=['N', 'O'], evidence_card=[2, 2])
-
-        # CPD for T with parents P, Q, R, S (2x2x2x2 = 16 columns)
-        prob_T = np.random.rand(2, 16)
-        prob_T = prob_T / prob_T.sum(axis=0, keepdims=True)
+        prob_S /= prob_S.sum(axis=0, keepdims=True)
+        cpd_S = TabularCPD(
+            variable='S',
+            variable_card=2,
+            values=prob_S,
+            evidence=['N', 'O'],
+            evidence_card=[2, 2],
+            state_names={"S": [0, 1], "N": [0,1], "O": [0,1]}
+        )
+        
+        # CPD for T with parents P, Q, R (2x8 slots)
+        prob_T = np.random.rand(2, 8)
+        prob_T /= prob_T.sum(axis=0, keepdims=True)
         cpd_T = TabularCPD(
             variable='T',
             variable_card=2,
             values=prob_T,
-            evidence=['P', 'Q', 'R', 'S'],
-            evidence_card=[2, 2, 2, 2],
-            state_names={'T': [0, 1], 'P': [0, 1], 'Q': [0, 1], 'R': [0, 1], 'S': [0, 1]}
+            evidence=['P', 'Q', 'R'],
+            evidence_card=[2, 2, 2],
+            state_names={"T": [0, 1], "P": [0,1], "Q": [0,1], "R": [0,1]}
         )
+        
+        # CPD for U with parents Q, R, S (2x8 slots)
+        prob_U = np.random.rand(2, 8)
+        prob_U /= prob_U.sum(axis=0, keepdims=True)
+        cpd_U = TabularCPD(
+            variable='U',
+            variable_card=2,
+            values=prob_U,
+            evidence=['Q', 'R', 'S'],
+            evidence_card=[2, 2, 2],
+            state_names={'U': [0, 1], 'Q': [0, 1], 'R': [0, 1], 'S': [0, 1]}
+        )
+        
+        return [
+            cpd_A, cpd_B, cpd_C, cpd_D, cpd_E, cpd_F, cpd_G, cpd_H,
+            cpd_I, cpd_J, cpd_K, cpd_L, cpd_M, cpd_N, cpd_O, cpd_P,
+            cpd_Q, cpd_R, cpd_S, cpd_T, cpd_U
+        ]
 
 
-        return [cpd_A, cpd_B, cpd_C, cpd_D, cpd_E, cpd_F, cpd_G, cpd_H, cpd_I, cpd_J, cpd_K, cpd_L, cpd_M, cpd_N, cpd_O, cpd_P, cpd_Q, cpd_R, cpd_S, cpd_T]
-
+    else:
+        raise ValueError(f"Structure name '{structure_name}' not recognized.")
 
 
 
@@ -871,48 +1037,48 @@ def experiment(fixed_layers_config, fixed_cpds, structure, structure_name, exper
 # ---------------- Run Experiments for All Structures ------------------
 structures = {
     "chain_structure": [("A", "B"), ("B", "C")],
-    "complex_structure": [("A", "B"), ("B", "C"), ("A", "C")],
-    "ritesh_s_structure": [
-        ("A", "D"),
-        ("A", "F"),
-        ("B", "D"),
-        ("C", "D"),
-        ("C", "E"),
-        ("E", "G"),
-        ("D", "G"),
-        ("D", "F"),
-        ("F", "H"),
-        ("G", "H"),
-        ("H", "I"),
-        ("F", "I"),
-    ],
-    "vusani_s_structure_1": [
-        ("A", "E"),
-        ("B", "E"),
-        ("C", "E"),
-        ("D", "E"),
-        ("E", "F"),
-        ("E", "G"),
-        ("E", "H"),
-        ("F", "H"),
-        ("G", "H"),
-    ],
-    "vusani_s_structure_2": [
-        ("A", "F"),
-        ("B", "F"),
-        ("C", "F"),
-        ("D", "F"),
-        ("F", "G"),
-        ("F", "H"),
-        ("F", "I"),
-        ("F", "J"),
-        ("G", "J"),
-        ("H", "J"),
-        ("I", "J"),
-    ],
+    "triangular_structure": [("A", "B"), ("B", "C"), ("A", "C")],
+"tree_structure": [
+    ("A", "B"),
+    ("A", "C"),
+    ("B", "D"),
+    ("B", "E"),
+    ("C", "F"),
+    ("C", "G"),
+    ("D", "H"),
+    ("E", "I"),
+    ("F", "J"),
+    ("G", "K"),
+    
+]
+
+,
+"sparse_structure": [
+    ("A", "E"),
+    ("B", "E"),
+    ("C", "E"),  
+    ("D", "F"),
+    ("E", "F"),
+    ("E", "G"),
+    ("F", "H"),
+    ("G", "H"),
+]
+,
+"sparse_structure_2": [
+    ("A", "G"),
+    ("B", "G"),
+    ("C", "G"),
+    ("D", "H"),
+    ("G", "I"),
+    ("H", "I"),
+    ("E", "H"),
+    ("I", "J"),
+    ("H", "J"),
+    ("F", "J"),
+],
 
 
-"complex_20_node_structure": [
+ "dense_structure" : [
         ('A', 'D'),
         ('A', 'E'),
         ('A', 'F'),
@@ -943,8 +1109,10 @@ structures = {
         ('P', 'T'),
         ('Q', 'T'),
         ('R', 'T'),
-        ('S', 'T')
-    ],
+        ('Q', 'U'),
+        ('R', 'U'),
+        ('S', 'U'),
+    ]
 
 }
 
