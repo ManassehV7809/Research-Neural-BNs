@@ -2,74 +2,78 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import os
 
-# Define the path where the results CSV files are stored
-results_path = "./"
+# Define the directory containing the CSV files
+data_dir = '.'  # Change if your CSVs are in a different directory
 
-# Define the list of structures used in the experiments
-structures = [
-    "chain_structure",
-    "complex_structure",
-    "ritesh_s_structure",
-    "vusani_s_structure_1",
-    "vusani_s_structure_2",
-    "complex_20_node_structure",
+# Define the CSV filenames for all experiments
+csv_files = [
+    'chain_structure_experiment_1_results.csv',
+    'triangular_structure_experiment_1_results.csv',
+    'tree_structure_experiment_1_results.csv',
+    'sparse_structure_experiment_1_results.csv',
+    'sparse_structure_2_experiment_1_results.csv',
+    'dense_structure_experiment_1_results.csv',
+    'chain_structure_experiment_2_results.csv',
+    'triangular_structure_experiment_2_results.csv',
+    'tree_structure_experiment_2_results.csv',
+    'sparse_structure_experiment_2_results.csv',
+    'sparse_structure_2_experiment_2_results.csv',
+    'dense_structure_experiment_2_results.csv',
+    'chain_structure_experiment_3_results.csv',
+    'triangular_structure_experiment_3_results.csv',
+    'tree_structure_experiment_3_results.csv',
+    'sparse_structure_experiment_3_results.csv',
+    'sparse_structure_2_experiment_3_results.csv',
+    'dense_structure_experiment_3_results.csv'
 ]
 
-# Create empty lists to store the average KL divergence for each structure
-neural_kl_divergences = []
-traditional_kl_divergences = []
+# Define the neural network architectures used in the experiments
+architectures = {
+    1: '2 Hidden Layers',
+    2: '4 Hidden Layers',
+    3: '6 Hidden Layers'
+}
 
-# Iterate over each structure and load the corresponding results
-for structure in structures:
-    # Construct the file name for the results of the second experiment
-    file_name = f"{structure}_experiment_1.0_results.csv"
-    file_path = os.path.join(results_path, file_name)
+# Define a dictionary to hold the data for each structure and architecture
+data = {arch: {} for arch in architectures.values()}
 
-    # Load the CSV file into a DataFrame
-    if os.path.exists(file_path):
-        df = pd.read_csv(file_path)
+# Load the data from the CSV files
+for csv_file in csv_files:
+    structure_name = csv_file.split('_experiment_')[0]
+    df = pd.read_csv(os.path.join(data_dir, csv_file))
+    
+    # Extract data for each experiment (1, 2, 3)
+    for experiment, architecture in architectures.items():
+        arch_data = df[df['Experiment'] == experiment]
+        avg_kl_divergence_neural = arch_data['KL Divergence NeuralBN'].mean()
+        avg_kl_divergence_traditional = arch_data['KL Divergence TraditionalBN'].mean()
+        if structure_name not in data[architecture]:
+            data[architecture][structure_name] = {
+                'NeuralBN': avg_kl_divergence_neural,
+                'TraditionalBN': avg_kl_divergence_traditional
+            }
+        else:
+            data[architecture][structure_name]['NeuralBN'] = avg_kl_divergence_neural
+            data[architecture][structure_name]['TraditionalBN'] = avg_kl_divergence_traditional
 
-        # Calculate the average KL divergence for NeuralBN and TraditionalBN for the given structure
-        avg_kl_neural = df["KL Divergence NeuralBN"].mean()
-        avg_kl_traditional = df["KL Divergence TraditionalBN"].mean()
-
-        # Append the average KL divergence values to the respective lists
-        neural_kl_divergences.append(avg_kl_neural)
-        traditional_kl_divergences.append(avg_kl_traditional)
-    else:
-        print(f"Results file for {structure} not found.")
-
-# Plotting the results as a bar graph
-x_labels = [
-    "Chain Structure",
-    "Complex Structure",
-    "Ritesh's Structure",
-    "Vusani's Structure 1",
-    "Vusani's Structure 2",
-    "Complex 20-Node Structure",
-]
-x = range(len(structures))
-
-# Set the width of the bars
-bar_width = 0.35
-
-# Create the figure and axis
-fig, ax = plt.subplots(figsize=(10, 6))
-
-# Plot the bars for NeuralBN and TraditionalBN
-bars1 = ax.bar([i - bar_width / 2 for i in x], neural_kl_divergences, bar_width, label='NeuralBN', color='b')
-bars2 = ax.bar([i + bar_width / 2 for i in x], traditional_kl_divergences, bar_width, label='TraditionalBN', color='g')
-
-# Set the labels, title, and legend
-ax.set_xlabel('Network Structure')
-ax.set_ylabel('Average KL Divergence')
-ax.set_title('Average KL Divergence vs. Network Structure (NeuralBN vs. TraditionalBN)')
-ax.set_xticks(x)
-ax.set_xticklabels(x_labels, rotation=45, ha='right')
-ax.legend()
-
-# Adjust layout for better fit
-plt.tight_layout()
-
-# Show the plot
-plt.show()
+# Plot the bar graphs for each architecture
+for experiment, architecture in architectures.items():
+    plt.figure(figsize=(12, 8))
+    structures = list(data[architecture].keys())
+    neural_kl = [data[architecture][structure]['NeuralBN'] for structure in structures]
+    traditional_kl = [data[architecture][structure]['TraditionalBN'] for structure in structures]
+    
+    x = range(len(structures))
+    width = 0.35
+    
+    plt.bar(x, neural_kl, width, label='NeuralBN', color='skyblue')
+    plt.bar([i + width for i in x], traditional_kl, width, label='TraditionalBN', color='lightcoral')
+    
+    plt.xlabel('Network Structure')
+    plt.ylabel('Average KL Divergence')
+    plt.title(f'Experiment {experiment}: KL Divergence Across Structures ({architecture})')
+    plt.xticks([i + width / 2 for i in x], structures, rotation=45, ha='right')
+    plt.legend()
+    plt.tight_layout()
+    plt.savefig(f'kl_divergence_experiment_{experiment}_{architecture.replace(" ", "_").lower()}.png')
+    plt.show()

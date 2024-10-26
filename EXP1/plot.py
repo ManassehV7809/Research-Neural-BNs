@@ -1,71 +1,67 @@
+import seaborn as sns
 import pandas as pd
-import numpy as np
 import matplotlib.pyplot as plt
 import os
 
-# List of structures
-structures = ["chain_structure", "complex_structure", "ritesh_s_structure","vusani_s_structure_1","vusani_s_structure_2","complex_20_node_structure"]
+# Path to the folder containing CSV files
+folder_path = './kfoldexps/'  # Change this to the actual path
 
-# Colors for NeuralBN and TraditionalBN
-neural_colors = ["blue", "orange", "purple"]  # Colors for NeuralBN for each experiment
-traditional_colors = ["green", "red", "brown"]  # Colors for TraditionalBN for each experiment
+# List of structures and experiments
+structures = ['chain_structure', 'dense_structure', 'sparse_structure', 'sparse_structure_2', 'tree_structure', 'triangular_structure']
+experiments = ['experiment_1', 'experiment_2', 'experiment_3']
 
-# Iterate over each structure
-for structure_name in structures:
-    # Iterate over each experiment (architecture)
-    for experiment_num in range(3):
-        plt.figure(figsize=(20, 12))
+# Iterate through each structure and experiment to load data and generate plots
+for structure in structures:
+    for experiment in experiments:
+        # Construct the filename based on structure and experiment
+        file_name = f"{structure}_{experiment}_results.csv"
+        file_path = os.path.join(folder_path, file_name)
         
-        # Read the results CSV file for this experiment
-        filename = f"{structure_name}_experiment_{experiment_num + 1}_results.csv"
-        if not os.path.exists(filename):
-            print(f"File {filename} not found. Skipping.")
+        # Check if the file exists
+        if not os.path.isfile(file_path):
+            print(f"File not found: {file_path}")
             continue
-
-        df = pd.read_csv(filename)
-
-        # Group the data by Dataset Size and compute mean and std deviation
-        grouped = df.groupby("Dataset Size").agg({
-            "KL Divergence NeuralBN": ['mean', 'std'],
-            "KL Divergence TraditionalBN": ['mean', 'std']
+        
+        # Read the CSV file into a DataFrame
+        df = pd.read_csv(file_path)
+        
+        # Ensure that 'Dataset Size' is of integer type
+        df['Dataset Size'] = df['Dataset Size'].astype(int)
+        
+        # Group by 'Dataset Size' and compute mean and std for both NeuralBN and TraditionalBN
+        agg_df = df.groupby('Dataset Size').agg({
+            'KL Divergence NeuralBN': ['mean', 'std'],
+            'KL Divergence TraditionalBN': ['mean', 'std']
         }).reset_index()
-
-        # Extract means and std deviations
-        dataset_sizes = grouped["Dataset Size"]
-        neural_mean = grouped[("KL Divergence NeuralBN", "mean")]
-        neural_std = grouped[("KL Divergence NeuralBN", "std")]
-        traditional_mean = grouped[("KL Divergence TraditionalBN", "mean")]
-        traditional_std = grouped[("KL Divergence TraditionalBN", "std")]
-
-        # Plotting NeuralBN
-        plt.errorbar(
-            dataset_sizes,
-            neural_mean,
-            yerr=neural_std,
-            label=f"NeuralBN",
-            fmt='-o',
-            color=neural_colors[experiment_num % len(neural_colors)],
-            capsize=5,
-        )
-        # Plotting TraditionalBN
-        plt.errorbar(
-            dataset_sizes,
-            traditional_mean,
-            yerr=traditional_std,
-            label=f"TraditionalBN",
-            fmt='--s',
-            color=traditional_colors[experiment_num % len(traditional_colors)],
-            capsize=5,
-        )
-
-        plt.title(f"KL Divergence vs Dataset Size for {structure_name} Experiment {experiment_num + 1}")
-        plt.xlabel("Dataset Size")
-        plt.ylabel("KL Divergence")
+        
+        # Flatten the MultiIndex columns
+        agg_df.columns = ['Dataset Size', 'KL_NeuralBN_mean', 'KL_NeuralBN_std', 'KL_TraditionalBN_mean', 'KL_TraditionalBN_std']
+        
+        # Generate the plot
+        plt.figure(figsize=(10, 6))
+        
+        # Plot for NeuralBN
+        plt.errorbar(agg_df['Dataset Size'], agg_df['KL_NeuralBN_mean'], yerr=agg_df['KL_NeuralBN_std'],
+                     fmt='-o', capsize=5, label='NeuralBN', color='green', ecolor='lightgreen')
+        
+        # Plot for TraditionalBN
+        plt.errorbar(agg_df['Dataset Size'], agg_df['KL_TraditionalBN_mean'], yerr=agg_df['KL_TraditionalBN_std'],
+                     fmt='-s', capsize=5, label='TraditionalBN', color='red', ecolor='lightcoral')
+        
+        # Set y-axis limits to zoom in
+        plt.ylim(0, 1.5)  # Set the y-axis from 0 to 2
+        
+        # Customize the plot
+        plt.title(f'KL Divergence Comparison: {structure.replace("_", " ").title()} ({experiment.replace("_", " ").title()})')
+        plt.xlabel('Dataset Size')
+        plt.ylabel('KL Divergence')
         plt.legend()
         plt.grid(True)
-        plt.tight_layout()
-
+        
         # Save the plot
-        plt.savefig(f"{structure_name}_experiment_{experiment_num + 1}_kl_divergence_plot.png")
+        output_filename = f"{structure}_{experiment}_plot.png"
+        output_path = os.path.join(folder_path, output_filename)
+        plt.savefig(output_path)
         plt.close()
-        print(f"Plot saved for {structure_name} Experiment {experiment_num + 1}")
+        
+        print(f"Plot saved: {output_path}")

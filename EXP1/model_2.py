@@ -12,6 +12,7 @@ import time
 import matplotlib.pyplot as plt
 from pgmpy.estimators import MaximumLikelihoodEstimator
 from tqdm import tqdm
+from sklearn.model_selection import KFold
 
 # Determine the device being used for PyTorch
 device = (
@@ -206,16 +207,6 @@ class NeuralBayesianNetwork(BayesianNetwork):
             "loss": best_loss,
         }
 
-        # # Plot the training losses
-        # import matplotlib.pyplot as plt
-
-        # plt.figure()
-        # plt.plot(training_losses, label='Training Loss')
-        # plt.title(f'Training Loss for Variable {variable}')
-        # plt.xlabel('Epoch')
-        # plt.ylabel('Loss')
-        # plt.legend()
-        # plt.show()
 
         return model, architecture_details
 
@@ -969,70 +960,86 @@ def generate_synthetic_data(structure, cpds, size):
     return pd.DataFrame(data).astype(int)
 
 
-def get_dynamic_batch_size(dataset_size):
-    if dataset_size <= 10:
-        return 1
-    elif dataset_size <= 20:
+def get_k_folds(dataset_size, max_k=5):
+    if dataset_size < 10:
         return 2
-    elif dataset_size <= 50:
+    elif dataset_size < 50:
+        return min(5, dataset_size // 10)
+    else:
+        return max_k
+
+def get_dynamic_batch_size(training_size):
+    if training_size <= 10:
+        return 1
+    elif training_size <= 20:
+        return 2
+    elif training_size <= 50:
         return 4
-    elif dataset_size <= 100:
+    elif training_size <= 100:
         return 5
-    elif dataset_size <= 500:
+    elif training_size <= 500:
         return 32
     else:
         return 128
-    
 
-def experiment(fixed_layers_config, fixed_cpds, structure, structure_name, experiment_num):
-    dataset_sizes = [i for i in range(5, 2000, 200)]
+def experiment(fixed_layers_config, fixed_cpds, structure, structure_name, experiment_num, k=5):
+    dataset_sizes = [i for i in range(5, 200, 50)]
     iterations = 25
     results = []
 
-    # Create the original BN to use as ground truth for KL divergence comparison
+    # Original BN for ground truth
     original_bn = BayesianNetwork(structure)
     for cpd in fixed_cpds:
         original_bn.add_cpds(cpd)
     original_bn.check_model()
 
     for dataset_size in dataset_sizes:
-        batch_size = get_dynamic_batch_size(dataset_size)  # Use dynamic batch size based on dataset size
         for iteration in range(iterations):
-            print(f"Dataset Size: {dataset_size}, Iteration: {iteration + 1}, Batch Size: {batch_size}")
+            print(f"Structure: {structure_name}, Experiment: {experiment_num}, Dataset Size: {dataset_size}, Iteration: {iteration + 1}")
             data_df = generate_synthetic_data(structure, fixed_cpds, dataset_size)
-            train_df, test_df = split_data(data_df, test_size=0.3, random_state=iteration)
 
-            # Train NeuralBN with fixed architecture
-            neural_bn = NeuralBayesianNetwork(structure)
-            start_time = time.time()
-            neural_bn.fit(train_df, batch_size=batch_size, fixed_architecture=fixed_layers_config)
-            neural_time = time.time() - start_time
+            # Determine number of folds based on dataset size
+            current_k = get_k_folds(dataset_size)
+            kf = KFold(n_splits=current_k, shuffle=True, random_state=iteration)
+            
+            fold_num = 0
+            for train_index, test_index in kf.split(data_df):
+                fold_num += 1
+                train_df, test_df = data_df.iloc[train_index], data_df.iloc[test_index]
+                training_size = len(train_df)
+                batch_size = get_dynamic_batch_size(training_size)
 
-            # Train TraditionalBN
-            traditional_bn = create_traditional_bn(train_df, structure)
+                # Train NeuralBN
+                neural_bn = NeuralBayesianNetwork(structure)
+                start_time = time.time()
+                neural_bn.fit(train_df, batch_size=batch_size, fixed_architecture=fixed_layers_config)
+                neural_time = time.time() - start_time
 
-            # Compare KL Divergence using test_df
-            for node in traditional_bn.nodes():
-                kl_div_neural, kl_div_traditional = compare_with_ground_truth(
-                    original_bn, neural_bn, traditional_bn, test_df, node
-                )
-                results.append(
-                    {
+                # Train TraditionalBN
+                traditional_bn = create_traditional_bn(train_df, structure)
+
+                # Compare KL Divergence
+                for node in traditional_bn.nodes():
+                    kl_div_neural, kl_div_traditional = compare_with_ground_truth(
+                        original_bn, neural_bn, traditional_bn, test_df, node
+                    )
+                    results.append({
                         "Structure": structure_name,
-                        "Experiment": experiment_num/2,  # Experiment number starts from 1
+                        "Experiment": experiment_num,
                         "Dataset Size": dataset_size,
+                        "Fold": fold_num,
                         "Node": node,
                         "Iteration": iteration + 1,
                         "KL Divergence NeuralBN": kl_div_neural,
                         "KL Divergence TraditionalBN": kl_div_traditional,
                         "Training Time NeuralBN": neural_time,
-                    }
-                )
+                    })
 
-    # Save results for this experiment
+    # Save results
     df = pd.DataFrame(results)
-    df.to_csv(f"{structure_name}_experiment_{experiment_num/2}_results.csv", index=False)
-    print(f"Results saved for {structure_name} Experiment {experiment_num + 1}")
+    df.to_csv(f"{structure_name}_experiment_{experiment_num}_results_with_cv.csv", index=False)
+    print(f"Results saved for {structure_name} Experiment {experiment_num} with CV")
+
 
 # ---------------- Run Experiments for All Structures ------------------
 structures = {
@@ -1119,7 +1126,7 @@ structures = {
 layers_list = [2,4,6]
 for structure_name, structure in structures.items():
     for experiment_num in layers_list:  # Run 3 experiments
-        print(f"Running {structure_name} - Experiment {experiment_num/2}")
+        print(f"Running {structure_name} - Experiment {int(experiment_num/2)}")
         # Generate fixed architecture (2 layer, 4 layers, and 6 layers for each experiment)
         fixed_layers_config = [
     np.random.choice([32, 64, 128]) for _ in range(experiment_num)]
