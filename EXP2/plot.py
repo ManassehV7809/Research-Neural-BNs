@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import os
 
 # Define the directory containing the CSV files
-data_dir = '.'  # Change if your CSVs are in a different directory
+data_dir = '.' 
 
 # Define the CSV filenames for all experiments
 csv_files = [
