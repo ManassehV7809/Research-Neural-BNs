@@ -16,7 +16,7 @@ This project contains two directories, **EXP1** and **EXP2**, which include ever
 In the **EXP1** directory, you can perform the following steps to run and analyze the first experiment:
 
 1. **Run the Main Experiment:**
-   - Execute `model_2.py` to start the main experiment. This script will produce multiple CSV files containing results from all folds, all iterations, across all 3 experiments.
+   - Execute `model.py` to start the main experiment. This script will produce multiple CSV files containing results from all folds, all iterations, across all 3 experiments.
 
 2. **Analysis and Post-processing:**
    - **KL Divergence Analysis**: Run `nodes.py` to check the KL divergence on nodes with an indegree of 3.
